@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Astro Jump v2 - Infinito</title>
+    
+    <link rel="stylesheet" href="css/styles.css">
+
+</head>
+<body>
+
+    <div id="game-container">
+        <div id="score-board">ALTURA: 0</div>
+        <canvas id="gameCanvas"></canvas>
+        <div id="left-zone"></div>
+        <div id="right-zone"></div>
+
+        <div id="ui-layer">
+            <h1 id="title-text" style="font-size: 3rem; margin-bottom: 10px; color:#0ff;">ASTRO<br>JUMP</h1>
+            <p id="msg-text" style="color: #ccc;">Toque nos lados para mover</p>
+            <h2 id="final-score" class="hidden" style="color: #ff0; margin-top:10px;"></h2>
+            <button class="btn" onclick="startGame()">DECOLAR</button>
+        </div>
+    </div>
+
+    <script src="js/script.js"></script>
+</body>
+</html>

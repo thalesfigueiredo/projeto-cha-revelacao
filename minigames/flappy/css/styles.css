@@ -1,0 +1,65 @@
+body {
+    margin: 0; padding: 0;
+    background-color: #000;
+    overflow: hidden;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    touch-action: none; /* Impede zoom e scroll no celular */
+    user-select: none;
+}
+
+#game-container {
+    position: relative;
+    width: 100vw;
+    height: 100vh;
+    background: linear-gradient(to bottom, #000011, #0a0a2a);
+    overflow: hidden;
+}
+
+/* Placar Atual */
+#score-board {
+    position: absolute; top: 50px; width: 100%;
+    text-align: center; font-size: 5rem; font-weight: bold;
+    color: rgba(255, 255, 255, 0.8);
+    text-shadow: 0 0 10px #000;
+    pointer-events: none; z-index: 10;
+}
+
+/* Recorde no Topo */
+#high-score-display {
+    position: absolute; top: 20px; right: 20px;
+    font-size: 1.2rem; color: #ff0;
+    background: rgba(0,0,0,0.5); padding: 5px 10px; border-radius: 5px;
+    z-index: 10; font-weight: bold;
+}
+
+/* Telas (Start / Game Over) */
+#start-screen, #game-over-screen {
+    position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+    display: flex; flex-direction: column;
+    justify-content: center; align-items: center;
+    background: rgba(0,0,0,0.7);
+    z-index: 20; color: #fff; text-align: center;
+    backdrop-filter: blur(5px);
+}
+
+h1 { margin: 0 0 10px 0; font-size: 3rem; text-transform: uppercase; color: #0ff; text-shadow: 0 0 20px #0ff; }
+p { font-size: 1.2rem; margin: 5px 0; color: #ddd; }
+
+.btn {
+    margin-top: 30px; padding: 15px 40px;
+    font-size: 1.5rem; font-weight: bold;
+    background: linear-gradient(45deg, #ff00ff, #00ffff);
+    color: #fff; border: none; border-radius: 50px;
+    cursor: pointer; box-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
+    transition: transform 0.2s;
+}
+.btn:active { transform: scale(0.95); }
+
+.hidden { display: none !important; }
+
+/* Estrelas Fundo */
+.star {
+    position: absolute; background: white; border-radius: 50%;
+    animation: twinkle 3s infinite;
+}
+@keyframes twinkle { 0%, 100% { opacity: 0.2; } 50% { opacity: 1; } }

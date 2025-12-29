@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Galaxy Guardian</title>
+    
+    <link rel="stylesheet" href="css/styles.css">
+
+</head>
+<body>
+
+    <div id="game-container">
+        <div id="hud">
+            <div class="hud-text">LEVEL <span id="level-display">1</span></div>
+            <div class="hud-text">SCORE: <span id="score-display">0</span></div>
+        </div>
+        
+        <div id="boss-health-container">
+            <div id="boss-health-fill"></div>
+        </div>
+
+        <canvas id="gameCanvas"></canvas>
+
+        <div id="start-screen">
+            <h1 style="font-size: 3rem; color: #00ffff; text-shadow: 0 0 20px #00f;">GALAXY<br>GUARDIAN</h1>
+            <p>Sobreviva até o Chefão aparecer!</p>
+            <p style="font-size: 0.9rem; color: #aaa;">Arraste para mover • Tiro Automático</p>
+            <button class="btn" onclick="startGame()">DECOLAR 🚀</button>
+        </div>
+
+        <div id="game-over-screen" class="hidden">
+            <h1 style="color: #f00;">GAME OVER</h1>
+            <p>Sua nave foi destruída.</p>
+            <h2 id="final-score">0</h2>
+            <button class="btn" onclick="startGame()">REINICIAR</button>
+        </div>
+
+        <div id="level-up-screen" class="hidden">
+            <h1 style="color: #0f0;">BOSS DERROTADO!</h1>
+            <p>Setor limpo. Avançando...</p>
+        </div>
+    </div>
+
+    <script src="js/script.js"></script>
+</body>
+</html>

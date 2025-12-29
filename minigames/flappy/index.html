@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Flappy Rocket - Desafio Lunar</title>
+
+    <link rel="stylesheet" href="css/styles.css">
+    
+</head>
+<body>
+
+    <div id="game-container">
+        <div id="high-score-display">RECORDE: 0</div>
+        <div id="score-board">0</div>
+        <canvas id="gameCanvas"></canvas>
+
+        <div id="start-screen">
+            <h1>Flappy<br>Rocket</h1>
+            <p>Apolo ou Selene?</p>
+            <p style="font-size: 0.9rem; opacity: 0.7;">Toque para voar</p>
+            <button class="btn" onclick="startGame()">JOGAR</button>
+        </div>
+
+        <div id="game-over-screen" class="hidden">
+            <h1 style="color: #ff3333; text-shadow: 0 0 20px #ff0000;">GAME OVER</h1>
+            <div style="background: rgba(255,255,255,0.1); padding: 20px; border-radius: 10px; margin-top: 20px;">
+                <p>Pontuação: <span id="final-score" style="color: #fff; font-weight: bold;">0</span></p>
+                <p>Melhor: <span id="best-score" style="color: #ff0; font-weight: bold;">0</span></p>
+            </div>
+            <button class="btn" onclick="resetGame()">TENTAR DE NOVO</button>
+        </div>
+    </div>
+
+    <script src="js/script.js"></script>
+
+</body>
+</html>

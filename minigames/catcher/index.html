@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Star Catcher - Coleta Espacial</title>
+
+    <link rel="stylesheet" href="css/styles.css">
+
+</head>
+<body>
+
+    <div id="game-container">
+        <canvas id="gameCanvas"></canvas>
+
+        <div id="ui-layer">
+            <div id="score-board">0</div>
+        </div>
+
+        <div id="start-screen">
+            <h1 style="font-size: 3rem; color: #ff0; margin-bottom: 10px;">STAR<br>CATCHER</h1>
+            <p class="item-info">PEGUE: ⭐ (+1) e 🍼 (+5)</p>
+            <p class="item-info">DESVIE: ☄️ (Explosão)</p>
+            <p style="margin-top: 20px; font-size: 0.9rem; color: #aaa;">Arraste o foguete com o dedo</p>
+            <button class="btn" onclick="startGame()">INICIAR MISSÃO</button>
+        </div>
+
+        <div id="game-over-screen" class="hidden">
+            <h1 style="color: #ff3333; font-size: 3rem;">IMPACTO!</h1>
+            <p style="font-size: 1.5rem;">Pontuação Final</p>
+            <h2 id="final-score" style="font-size: 4rem; color: #fff; margin: 10px 0;">0</h2>
+            <button class="btn" onclick="startGame()">JOGAR DE NOVO</button>
+        </div>
+    </div>
+
+    <script src="js/script.js"></script>
+</body>
+</html>
