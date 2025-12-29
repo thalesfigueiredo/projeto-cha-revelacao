@@ -142,39 +142,83 @@ function generateStars() {
 
 async function runIntroAnimation() {
     generateStars();
+    
     // 1. Casal entra (na Lua)
     await sleep(500);
-    couple.style.left = "40%"; await sleep(6000); 
+    couple.style.left = "40%"; 
+    await sleep(6000); 
+
     // 2. Entram no foguete
-    couple.style.opacity = "0"; await sleep(1000);
-    // 3. Decolagem
+    couple.style.opacity = "0"; 
+    await sleep(1000);
+
+    // 3. DECOLAGEM (IDA: Rumo à Terra)
     rocket.classList.add('rocket-shake'); 
-    await sleep(2000); 
-    rocket.style.transition = "bottom 5s ease-in"; 
-    rocket.style.bottom = "120vh"; 
-    // 4. Espaço -> Terra
-    await sleep(2500);
+    await sleep(1500); 
+    
+    // A mágica da perspectiva:
+    // Vai para cima (bottom 85%) e para a direita (left 85%) onde está a Terra
+    // Gira 45 graus para apontar pra lá
+    // DIMINUI (scale 0.1) para parecer que está indo para longe/entrando na Terra
+    rocket.style.bottom = "85%"; 
+    rocket.style.left = "85%"; 
+    rocket.style.transform = "translateX(-50%) rotate(45deg) scale(0.1)";
+    
+    // 4. Espaço (Transição de Cenário)
+    await sleep(4000); // Espera a nave chegar lá longe
+    
+    // Troca o cenário para Dia/Terra
     stage.style.background = "#87CEEB"; 
     ground.style.transition = "background 2s, bottom 1s";
     ground.style.bottom = "-20vh"; 
     setTimeout(() => { ground.style.background = "#228B22"; }, 500);
     document.querySelectorAll('.star').forEach(s => s.style.opacity = 0);
-    // Lua vira lua
+    
+    // Transforma a Terra (que a nave entrou) na Lua (de onde a nave vai sair)
     skyObj.style.opacity = 0; 
-    await sleep(1000);
-    skyObj.innerText = "🌑"; skyObj.style.fontSize = "15vw"; skyObj.style.color = "#fff"; skyObj.style.opacity = 0.6;
-    await sleep(2000); 
-    // 5. Pouso
+    await sleep(500);
+    skyObj.innerText = "🌑"; 
+    skyObj.style.fontSize = "15vw"; 
+    skyObj.style.color = "#fff"; 
+    skyObj.style.opacity = 0.6;
+    
+    await sleep(1000); 
+
+    // 5. A VOLTA (Saindo da Lua -> Pousando na Terra)
+    
+    // Reposiciona a nave "teletransportando" ela para dentro da Lua (sem animação)
+    rocket.style.transition = "none"; 
+    rocket.style.bottom = "85%"; // Lá no alto
+    rocket.style.left = "85%";   // Lá na direita (Lua)
+    // Aponta para baixo/esquerda e começa PEQUENA
+    rocket.style.transform = "translateX(-50%) rotate(-45deg) scale(0.1)"; 
+    
+    // Traz o chão
     ground.style.bottom = "0";
-    rocket.style.transition = "bottom 5s ease-out"; 
+    
+    // Pequena pausa técnica para o navegador entender a nova posição
+    await sleep(100);
+
+    // ATIVA A DESCIDA
+    // Volta a transição lenta
+    rocket.style.transition = "bottom 5s ease-out, left 5s ease-out, transform 5s ease-out"; 
+    
+    // Destino final: Centro, Chão, Tamanho Normal
     rocket.style.bottom = "13vh"; 
-    rocket.classList.remove('rocket-shake');
+    rocket.style.left = "50%";
+    rocket.style.transform = "translateX(-50%) rotate(0deg) scale(1)"; // Volta ao tamanho original
+
+    // Para de tremer quando pousar
+    setTimeout(() => rocket.classList.remove('rocket-shake'), 5000);
+
     await sleep(5500);
+
     // 6. Casal Sai
     couple.style.opacity = "1";
     couple.style.transition = "left 2s ease-out";
-    couple.style.left = "15%"; 
+    couple.style.left = "20%"; 
     await sleep(2500);
+    
     // 7. Abre Notebook
     laptopUI.style.display = "flex";
 }

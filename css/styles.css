@@ -49,8 +49,14 @@ body {
     filter: drop-shadow(0 0 20px rgba(255,255,255,0.2)); 
 }
 #rocket-container { 
-    position: absolute; bottom: 13vh; left: 50%; transform: translateX(-50%); 
-    font-size: 15vh; z-index: 20; transition: bottom 5s ease-in-out; 
+    position: absolute; 
+    bottom: 13vh; 
+    left: 50%; 
+    transform: translateX(-50%); 
+    font-size: 15vh; 
+    z-index: 20; 
+    /* Adicionado transform na transição para animar o tamanho (scale) */
+    transition: bottom 5s ease-in-out, left 5s ease-in-out, transform 5s ease-in-out; 
 }
 .rocket-shake { animation: shake 0.2s infinite; }
 
