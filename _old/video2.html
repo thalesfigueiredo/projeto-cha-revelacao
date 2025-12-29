@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Protocolo Apolo/Selene: A Jornada</title>
+    <style>
+        /* --- GERAL --- */
+        body { margin: 0; padding: 0; overflow: hidden; background: #000; font-family: 'Courier New', Courier, monospace; height: 100vh; width: 100vw; display: flex; flex-direction: column; }
+
+        /* TELA DE START (Para liberar o áudio) */
+        #start-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: #000; z-index: 3000; display: flex;
+            justify-content: center; align-items: center; cursor: pointer;
+        }
+        .start-btn {
+            border: 2px solid #0f0; color: #0f0; padding: 20px 40px;
+            font-size: 2rem; font-weight: bold; background: transparent;
+            cursor: pointer; transition: all 0.3s;
+        }
+        .start-btn:hover { background: #0f0; color: #000; }
+
+        /* --- ANIMAÇÃO INTRO --- */
+        #intro-stage {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(to top, #87CEEB 0%, #E0F6FF 100%);
+            z-index: 2000; overflow: hidden; transition: background 3s ease; display: none; /* Começa escondido */
+        }
+        .ground { position: absolute; bottom: 0; width: 100%; height: 15vh; background: #228B22; transition: background 2s, bottom 1s; z-index: 10; }
+        .star { position: absolute; background: white; border-radius: 50%; opacity: 0; transition: opacity 3s; }
+        #earth-body { position: absolute; top: 10%; right: 10%; font-size: 12vw; opacity: 0; transition: opacity 3s; filter: drop-shadow(0 0 20px rgba(0, 100, 255, 0.5)); z-index: 5; }
+        #rocket-container { position: absolute; bottom: 13vh; left: 50%; transform: translateX(-50%); font-size: 15vh; z-index: 20; transition: bottom 5s ease-in-out; }
+        .rocket-shake { animation: shake 0.2s infinite; }
+        #boy-actor { position: absolute; bottom: 13vh; left: -15%; font-size: 8vh; z-index: 30; transition: left 6s linear, bottom 0.5s; }
+        
+        #laptop-ui {
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            width: 300px; height: 200px; background: #f0f0f0; border: 2px solid #333; border-radius: 8px;
+            display: none; flex-direction: column; align-items: center; justify-content: center;
+            box-shadow: 0 0 30px rgba(255,255,255,0.8); z-index: 100; font-family: Arial, sans-serif;
+            animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        .folder-icon { font-size: 5rem; cursor: pointer; transition: transform 0.2s; }
+        .folder-icon:hover { transform: scale(1.1); }
+        .file-icon { font-size: 4rem; cursor: pointer; display: none; margin-top: 10px; }
+        .ui-text { font-size: 1rem; margin-top: 5px; color: #333; font-weight: bold;}
+
+        @keyframes shake { 0% { transform: translateX(-51%); } 50% { transform: translateX(-49%); } 100% { transform: translateX(-50%); } }
+        @keyframes popIn { from { transform: translate(-50%, -50%) scale(0); } to { transform: translate(-50%, -50%) scale(1); } }
+
+        /* --- TERMINAL --- */
+        #terminal-app { display: none; width: 100%; height: 100%; }
+        #terminal { width: 100%; height: 100%; padding: 40px; box-sizing: border-box; font-size: 1.6rem; color: #0f0; text-shadow: 0 0 5px #0f0; overflow-y: auto; white-space: pre-wrap; display: none; }
+        #terminal::-webkit-scrollbar { width: 0px; } 
+        #timer-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center; background-color: #000; z-index: 100; }
+        #timer-display { font-size: 15vw; color: #0f0; font-weight: bold; }
+        .timer-label { font-size: 2rem; color: #fff; margin-bottom: 20px; letter-spacing: 5px;}
+        .input-line { display: flex; flex-wrap: wrap; align-items: center; width: 100%; margin: 10px 0; }
+        .prompt-text { color: #fff; margin-right: 15px; white-space: nowrap; }
+        .user-input { color: #ff0; font-weight: bold; }
+        .cursor { display: inline-block; width: 12px; height: 24px; background-color: #0f0; margin-left: 5px; animation: blink 1s infinite; }
+        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+        .highlight { color: #fff; font-weight: bold; font-size: 1.8rem; margin-top: 20px; margin-bottom: 10px; display: block; background: rgba(0, 50, 0, 0.3); padding: 5px; }
+        .warning { color: #ff0; } .error { color: #f00; font-weight: bold; }
+        .matrix-text { color: #00ff00; font-family: 'Courier New', Courier, monospace; font-size: 1.3rem; opacity: 1; text-shadow: 0 0 2px #00ff00; }
+        
+        #launch-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: #000; display: none; flex-direction: column; justify-content: center; align-items: center; z-index: 400; }
+        .launch-status { font-size: 3rem; color: #0f0; margin-bottom: 30px; text-align: center;}
+        .launch-count { font-size: 20vw; color: #fff; font-weight: bold; }
+        
+        #crash-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: #000; display: none; flex-direction: column; justify-content: center; align-items: center; z-index: 500; animation: glitch 0.2s infinite; }
+        .crash-title { font-size: 8rem; color: #f00; font-weight: bold; background: #000; padding: 20px; border: 5px solid #f00;}
+        .crash-msg { font-size: 2rem; color: #fff; margin-top: 20px; }
+        .crash-timer { font-size: 5rem; color: #f00; margin-top: 20px; }
+        @keyframes glitch { 0% { transform: translate(0); } 20% { transform: translate(-3px, 3px); } 40% { transform: translate(-3px, -3px); } 60% { transform: translate(3px, 3px); } 80% { transform: translate(3px, -3px); } 100% { transform: translate(0); } }
+
+        #prank-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: #000; display: none; justify-content: center; align-items: center; z-index: 600; }
+        .prank-text { font-size: 2.5rem; color: #fff; font-style: italic; opacity: 0; animation: fadeInOut 4s forwards; }
+        @keyframes fadeInOut { 0% { opacity: 0; } 20% { opacity: 1; } 80% { opacity: 1; } 100% { opacity: 0; } }
+
+        #reveal-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; display: none; flex-direction: column; justify-content: center; align-items: center; text-align: center; z-index: 999; background: #000; }
+        .moon-icon { font-size: 15vh; margin-bottom: 20px; opacity: 0; transition: opacity 3s ease-in-out; }
+        .big-name { font-size: 12vw; font-weight: bold; margin: 0; font-family: Arial, sans-serif; letter-spacing: 5px; opacity: 0; transition: opacity 3s ease-in-out; }
+        .subtitle { font-size: 3rem; color: #fff; margin-top: 20px; opacity: 0; transition: opacity 3s ease-in-out; }
+        .boy-text { color: #00ffff; text-shadow: 0 0 40px #00ffff; }
+        .girl-text { color: #ff00ff; text-shadow: 0 0 40px #ff00ff; }
+        #confetti-canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 1000; }
+    </style>
+</head>
+<body>
+
+    <audio id="audio-tension" src="interstellar.mp3" loop></audio>
+    <audio id="audio-celebration" src="vanhalen.mp3"></audio>
+
+    <div id="start-overlay" onclick="startExperience()">
+        <button class="start-btn">INICIAR MISSÃO</button>
+    </div>
+
+    <div id="intro-stage">
+        <div id="earth-body">🌍</div>
+        <div id="rocket-container">🚀</div>
+        <div id="boy-actor">🧑‍💻</div>
+        <div class="ground" id="ground"></div>
+        <div id="laptop-ui">
+            <div style="width:100%; background:#ccc; height:25px; border-bottom:1px solid #999; display:flex; justify-content:flex-end; padding-right:8px; align-items:center;">
+                <div style="width:12px; height:12px; background:red; border-radius:50%;"></div>
+            </div>
+            <div id="folder-view" style="text-align:center; padding:20px;">
+                <div class="folder-icon" onclick="openFolder()">📁</div>
+                <div class="ui-text">Apolo_Selene</div>
+            </div>
+            <div id="file-view" style="text-align:center; display:none; padding:20px;">
+                <div class="file-icon" style="display:block;" onclick="startHackerMode()">📄</div>
+                <div class="ui-text">iniciar_sistema.exe</div>
+            </div>
+        </div>
+    </div>
+
+    <div id="terminal-app">
+        <div id="timer-screen"><div class="timer-label">INICIANDO CONTAGEM</div><div id="timer-display">00:00</div></div>
+        <div id="terminal"><div id="output"></div></div>
+        <div id="launch-overlay"><div class="launch-status" id="launch-text">...</div><div class="launch-count" id="launch-number"></div></div>
+        <div id="crash-screen"><div class="crash-title">WARNING</div><div class="crash-msg">CRITICAL FAILURE DETECTED</div><div style="color: #fff; margin-top: 10px;">System shutdown in:</div><div class="crash-timer" id="crash-count">5</div></div>
+        <div id="prank-screen"><div class="prank-text">( brincadeira, só pra não perder o costume... )</div></div>
+        <div id="reveal-screen"><canvas id="confetti-canvas"></canvas><div class="moon-icon" id="moon-visual"></div><h1 class="big-name" id="baby-name"></h1><div class="subtitle" id="sub-visual">HELLO WORLD!</div></div>
+    </div>
+
+    <script>
+        // CONFIG
+        const isBoy = true;          
+        let countdownSeconds = 10;   
+        const dadName = "Flatelo";   
+        const momName = "Marcela";   
+
+        // Áudios
+        const audioTension = document.getElementById('audio-tension');
+        const audioCeleb = document.getElementById('audio-celebration');
+
+        // Utils
+        const sleep = (ms) => new Promise(r => setTimeout(r, ms));
+
+        // --- INICIAR TUDO (SOM + ANIMAÇÃO) ---
+        function startExperience() {
+            // Esconde botão start
+            document.getElementById('start-overlay').style.display = 'none';
+            // Mostra animação
+            document.getElementById('intro-stage').style.display = 'block';
+            
+            // Toca música 1 (Loop)
+            audioTension.volume = 0.8;
+            audioTension.play();
+
+            // Inicia animação
+            runIntroAnimation();
+        }
+
+        // --- ANIMAÇÃO ---
+        const stage = document.getElementById('intro-stage');
+        const boy = document.getElementById('boy-actor');
+        const rocket = document.getElementById('rocket-container');
+        const ground = document.getElementById('ground');
+        const earth = document.getElementById('earth-body');
+        const laptopUI = document.getElementById('laptop-ui');
+        const folderView = document.getElementById('folder-view');
+        const fileView = document.getElementById('file-view');
+
+        function generateStars() {
+            for(let i=0; i<100; i++) {
+                const s = document.createElement('div');
+                s.className = 'star';
+                s.style.left = Math.random() * 100 + '%';
+                s.style.top = Math.random() * 100 + '%';
+                const size = Math.random() * 3;
+                s.style.width = size + 'px';
+                s.style.height = size + 'px';
+                s.style.opacity = Math.random();
+                stage.appendChild(s);
+            }
+        }
+
+        async function runIntroAnimation() {
+            generateStars();
+            
+            // Menino entra
+            await sleep(500);
+            boy.style.transition = "left 6s linear"; 
+            boy.style.left = "42%"; 
+            await sleep(6000); 
+
+            // Foguete
+            boy.style.transition = "opacity 0.5s";
+            boy.style.opacity = "0"; 
+            await sleep(1000);
+
+            rocket.classList.add('rocket-shake'); 
+            await sleep(2000); 
+            
+            rocket.style.transition = "bottom 5s ease-in"; 
+            rocket.style.bottom = "120vh"; 
+            
+            // Espaço
+            await sleep(2500);
+            stage.style.background = "#000015"; 
+            ground.style.transition = "bottom 2s";
+            ground.style.bottom = "-20vh"; 
+            document.querySelectorAll('.star').forEach(s => s.style.opacity = Math.random() * 0.8 + 0.2);
+            
+            await sleep(3000); 
+
+            // Lua
+            ground.style.background = "#555"; 
+            ground.style.bottom = "0";
+            earth.style.opacity = 1; 
+            
+            rocket.style.transition = "bottom 5s ease-out"; 
+            rocket.style.bottom = "13vh"; 
+            rocket.classList.remove('rocket-shake');
+
+            await sleep(5500);
+
+            // Menino sai
+            boy.style.opacity = "1";
+            boy.style.transition = "left 2s ease-out";
+            boy.style.left = "20%"; 
+            await sleep(2500);
+            
+            laptopUI.style.display = "flex";
+        }
+
+        function openFolder() {
+            folderView.style.display = "none";
+            fileView.style.display = "block";
+        }
+
+        function startHackerMode() {
+            stage.style.transition = "opacity 1s";
+            stage.style.opacity = 0;
+            setTimeout(() => {
+                stage.style.display = "none";
+                document.getElementById('terminal-app').style.display = "block";
+                startCountdown();
+            }, 1000);
+        }
+
+        // --- TERMINAL ---
+        const output = document.getElementById('output');
+        const terminal = document.getElementById('terminal');
+        const timerScreen = document.getElementById('timer-screen');
+        const timerDisplay = document.getElementById('timer-display');
+        const launchOverlay = document.getElementById('launch-overlay');
+        const launchText = document.getElementById('launch-text');
+        const launchNumber = document.getElementById('launch-number');
+        const crashScreen = document.getElementById('crash-screen');
+        const crashCount = document.getElementById('crash-count');
+        const prankScreen = document.getElementById('prank-screen');
+        const revealScreen = document.getElementById('reveal-screen');
+        const babyNameElement = document.getElementById('baby-name');
+        const moonVisual = document.getElementById('moon-visual');
+        const subVisual = document.getElementById('sub-visual');
+
+        function startCountdown() {
+            const interval = setInterval(() => {
+                const min = Math.floor(countdownSeconds / 60).toString().padStart(2, '0');
+                const sec = (countdownSeconds % 60).toString().padStart(2, '0');
+                timerDisplay.innerText = `${min}:${sec}`;
+                if (countdownSeconds <= 0) {
+                    clearInterval(interval);
+                    timerScreen.style.display = 'none';
+                    terminal.style.display = 'block';
+                    initSystemPrompt();
+                }
+                countdownSeconds--;
+            }, 1000);
+        }
+
+        function askInput(promptText) {
+            return new Promise((resolve) => {
+                const line = document.createElement('div');
+                line.className = 'input-line';
+                line.innerHTML = `<span class="prompt-text">${promptText}</span><div class="input-wrapper"><span class="user-input"></span><span class="cursor"></span></div>`;
+                output.appendChild(line);
+                window.scrollTo(0, document.body.scrollHeight);
+                terminal.scrollTop = terminal.scrollHeight;
+
+                const inputSpan = line.querySelector('.user-input');
+                const cursor = line.querySelector('.cursor');
+                let currentText = "";
+
+                const handler = (e) => {
+                    if (e.key === "Enter") {
+                        e.preventDefault();
+                        document.removeEventListener('keydown', handler);
+                        cursor.remove(); 
+                        resolve(currentText.trim());
+                        return;
+                    }
+                    if (e.key === "Backspace") currentText = currentText.slice(0, -1);
+                    else if (e.key.length === 1) currentText += e.key;
+                    inputSpan.innerText = currentText;
+                };
+                document.addEventListener('keydown', handler);
+            });
+        }
+
+        async function log(text, type = '') {
+            const div = document.createElement('div');
+            if (type === 'highlight') div.className = 'highlight';
+            else if (type === 'warning') div.className = 'warning';
+            else if (type === 'error') div.className = 'error';
+            else div.style.color = "#0f0"; 
+            div.textContent = text;
+            output.appendChild(div);
+            terminal.scrollTop = terminal.scrollHeight;
+            await sleep(400); 
+        }
+
+        async function matrixRain(lines) {
+            for(let i=0; i<lines; i++) {
+                let hex = Math.random().toString(16).substr(2, 8).toUpperCase();
+                const div = document.createElement('div');
+                div.className = 'matrix-text'; 
+                div.textContent = `Processing segment: 0x${hex}... [OK]`;
+                output.appendChild(div);
+                terminal.scrollTop = terminal.scrollHeight;
+                await sleep(120); 
+            }
+        }
+
+        async function initSystemPrompt() {
+            await log("Terminal T-OS v8.0 Security Enhanced.");
+            await sleep(500);
+            while (true) {
+                let resp = await askInput("Iniciar sistema? [S/N]:");
+                if (resp.toLowerCase() === 's') { runBootSequence(); break; }
+                else { await log("Aguardando confirmação...", "warning"); }
+            }
+        }
+
+        async function runBootSequence() {
+            await sleep(500);
+            await log("Carregando Kernel...", "highlight");
+            await matrixRain(15);
+            await log("Verificando conexão estelar... OK");
+            
+            await log(">>> AUTENTICAÇÃO NECESSÁRIA <<<", "warning");
+            await sleep(800);
+            while(true) {
+                let r = await askInput("Nome do Pai (Admin 1):");
+                await log(`Verificando: ${r}...`); await sleep(1500);
+                if (r.toLowerCase() === dadName.toLowerCase()) { await log("Acesso Admin 1: AUTORIZADO.", "highlight"); break; }
+                else { await log("ERRO: ACESSO NEGADO.", "error"); await sleep(500); }
+            }
+            await sleep(500);
+            while(true) {
+                let r = await askInput("Nome da Mãe (Admin 2):");
+                await log(`Verificando: ${r}...`); await sleep(1500);
+                if (r.toLowerCase() === momName.toLowerCase()) { await log("Acesso Admin 2: AUTORIZADO.", "highlight"); break; }
+                else { await log("ERRO: ACESSO NEGADO.", "error"); await sleep(500); }
+            }
+
+            await sleep(800);
+            await log("PERMISSÃO TOTAL CONCEDIDA.", "highlight");
+            await log("---------------------------------");
+
+            const funnyMessages = [
+                "Acessando dados da família...",
+                "Baixando: 'Manual_de_Instrucoes_Bebe.pdf'...",
+                "Calibrando bochechas...",
+                "Sincronizando com a Lua...",
+                "Otimizando fofura...",
+                "Verificando palpites dos avós...",
+                "Compilando DNA..."
+            ];
+
+            for (let msg of funnyMessages) {
+                await log(`> ${msg}`, "highlight"); 
+                await matrixRain(8);
+                await sleep(3000); 
+            }
+
+            await log("SISTEMA PRONTO.", "highlight");
+            await sleep(1000);
+            promptFinalReveal();
+        }
+
+        async function promptFinalReveal() {
+            await log("---------------------------------");
+            await log("ARQUIVO 'REVELACAO.EXE' CARREGADO.", "warning");
+            while(true) {
+                let resp = await askInput("Executar AGORA? [S/N]:");
+                if (resp.toLowerCase() === 's') { startLaunchSequence(); break; }
+                else { await log("Opção inválida.", "error"); }
+            }
+        }
+
+        async function startLaunchSequence() {
+            terminal.style.display = 'none';
+            launchOverlay.style.display = 'flex';
+            const msgs = ["INICIANDO MOTORES...", "PRESSURIZANDO CABINE...", "NAVEGAÇÃO: OK", "DESTINO: TERRA"];
+            for(let m of msgs) { launchText.innerText = m; await sleep(1200); }
+            launchText.innerText = "LANÇAMENTO EM:";
+            for(let i=5; i>0; i--) { launchNumber.innerText = i; await sleep(1000); }
+            triggerFakeCrash(); 
+        }
+
+        async function triggerFakeCrash() {
+            launchOverlay.style.display = 'none';
+            crashScreen.style.display = 'flex';
+            
+            // Pausa a música Interestellar bruscamente aqui para dar susto
+            audioTension.pause();
+            audioTension.currentTime = 0;
+
+            for(let i=5; i>=0; i--) { crashCount.innerText = i; await sleep(1000); }
+            crashScreen.style.display = 'none';
+            prankScreen.style.display = 'flex';
+            await sleep(6000); 
+            prankScreen.style.display = 'none';
+            triggerCinematicReveal();
+        }
+
+        function triggerCinematicReveal() {
+            revealScreen.style.display = 'flex';
+            
+            // SOLTA A MÚSICA DO VAN HALEN AGORA
+            audioCeleb.volume = 1.0;
+            audioCeleb.play();
+
+            if (isBoy) {
+                babyNameElement.classList.add('boy-text');
+                babyNameElement.innerText = "APOLO";
+                moonVisual.innerText = "🌑"; 
+                moonVisual.style.textShadow = "0 0 60px #00ffff";
+            } else {
+                babyNameElement.classList.add('girl-text');
+                babyNameElement.innerText = "SELENE";
+                moonVisual.innerText = "🌕";
+                moonVisual.style.textShadow = "0 0 60px #ff00ff";
+            }
+
+            setTimeout(() => { moonVisual.style.opacity = 1; }, 500);
+            setTimeout(() => { 
+                babyNameElement.style.opacity = 1; 
+                subVisual.style.opacity = 1;
+                startConfetti(); 
+            }, 2500);
+        }
+
+        function startConfetti() {
+            const canvas = document.getElementById('confetti-canvas');
+            const ctx = canvas.getContext('2d');
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            const particles = [];
+            const particleCount = 150;
+            const colors = isBoy ? ['#00ffff', '#0000ff', '#ffffff'] : ['#ff00ff', '#800080', '#ffffff'];
+
+            for (let i = 0; i < particleCount; i++) {
+                particles.push({
+                    x: Math.random() * canvas.width,
+                    y: Math.random() * canvas.height - canvas.height,
+                    size: Math.random() * 5 + 5,
+                    speedY: Math.random() * 3 + 2,
+                    speedX: Math.random() * 2 - 1,
+                    color: colors[Math.floor(Math.random() * colors.length)]
+                });
+            }
+
+            function animate() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                particles.forEach(p => {
+                    p.y += p.speedY;
+                    p.x += p.speedX;
+                    ctx.fillStyle = p.color;
+                    ctx.fillRect(p.x, p.y, p.size, p.size);
+                    if (p.y > canvas.height) { p.y = -10; p.x = Math.random() * canvas.width; }
+                });
+                requestAnimationFrame(animate);
+            }
+            animate();
+        }
+    </script>
+</body>
+</html>

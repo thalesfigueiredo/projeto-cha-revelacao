@@ -1,0 +1,638 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Protocolo Apolo/Selene Mobile</title>
+    <style>
+        /* --- ESTILO GERAL --- */
+        body {
+            background-color: #000;
+            color: #0f0;
+            font-family: 'Courier New', Courier, monospace;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            height: 100vh;
+            width: 100vw;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* --- TERMINAL --- */
+        #terminal {
+            width: 100%;
+            height: 100%;
+            padding: 20px; /* Padding menor para celular */
+            box-sizing: border-box;
+            font-size: 1.2rem; /* Fonte base menor para caber no celular */
+            line-height: 1.4;
+            text-shadow: 0 0 5px #0f0;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            display: none;
+            /* Garante espaço no final para o teclado não cobrir o input */
+            padding-bottom: 50vh; 
+        }
+        #terminal::-webkit-scrollbar { width: 0px; } 
+
+        /* --- PROXY INPUT (O Segredo do Mobile) --- */
+        /* Isso é um input real invisível que chama o teclado do celular */
+        #mobile-proxy {
+            position: absolute;
+            opacity: 0;
+            top: -1000px;
+        }
+
+        /* --- TIMER INICIAL --- */
+        #timer-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background-color: #000;
+            z-index: 100;
+        }
+        #timer-display { font-size: 20vw; color: #0f0; font-weight: bold; }
+        .timer-label { 
+            font-size: 5vw; 
+            color: #fff; 
+            margin-bottom: 20px; 
+            letter-spacing: 2px;
+            text-align: center;
+        }
+
+        /* --- INPUT VISUAL --- */
+        .input-line {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            width: 100%;
+            margin: 10px 0;
+        }
+        .prompt-text { 
+            color: #fff; 
+            margin-right: 10px; 
+            white-space: nowrap;
+        }
+        .input-wrapper {
+            display: flex;
+            align-items: center;
+            flex-grow: 1;
+        }
+        .user-input { 
+            color: #ff0; /* Amarelo */
+            font-weight: bold; 
+            word-break: break-all; /* Quebra linha se digitar muito no celular */
+        }
+        .cursor {
+            display: inline-block;
+            width: 10px;
+            height: 20px;
+            background-color: #0f0;
+            margin-left: 2px;
+            animation: blink 1s infinite;
+        }
+        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+
+        /* --- TEXTOS --- */
+        .highlight { 
+            color: #fff; 
+            font-weight: bold; 
+            font-size: 1.3rem; 
+            margin-top: 20px; 
+            margin-bottom: 10px;
+            display: block; 
+            background: rgba(0, 50, 0, 0.3); 
+            padding: 5px;
+        }
+        .warning { color: #ff0; }
+        .error { color: #f00; font-weight: bold; }
+        
+        .matrix-text { 
+            color: #00ff00; 
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 0.9rem; /* Menor para não poluir tela pequena */
+            line-height: 1.2; 
+            opacity: 1; 
+            text-shadow: 0 0 2px #00ff00; 
+        }
+
+        /* --- LANÇAMENTO --- */
+        #launch-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #000;
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 400;
+        }
+        .launch-status { font-size: 8vw; color: #0f0; margin-bottom: 30px; text-align: center;}
+        .launch-count { font-size: 30vw; color: #fff; font-weight: bold; }
+
+        /* --- CRASH --- */
+        #crash-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #000;
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            z-index: 500;
+            animation: glitch 0.2s infinite;
+        }
+        .crash-title { font-size: 15vw; color: #f00; font-weight: bold; background: #000; padding: 10px; border: 3px solid #f00;}
+        .crash-msg { font-size: 6vw; color: #fff; margin-top: 20px; }
+        .crash-timer { font-size: 20vw; color: #f00; margin-top: 20px; }
+
+        @keyframes glitch {
+            0% { transform: translate(0); }
+            20% { transform: translate(-2px, 2px); }
+            40% { transform: translate(-2px, -2px); }
+            60% { transform: translate(2px, 2px); }
+            80% { transform: translate(2px, -2px); }
+            100% { transform: translate(0); }
+        }
+
+        /* --- BRINCADEIRA --- */
+        #prank-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #000;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            text-align: center;
+            z-index: 600;
+        }
+        .prank-text { font-size: 6vw; color: #fff; font-style: italic; opacity: 0; animation: fadeInOut 4s forwards; }
+        @keyframes fadeInOut { 0% { opacity: 0; } 20% { opacity: 1; } 80% { opacity: 1; } 100% { opacity: 0; } }
+
+        /* --- REVELAÇÃO --- */
+        #reveal-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            z-index: 999;
+            background: #000;
+        }
+
+        .moon-icon { 
+            font-size: 20vh; /* Ajusta conforme altura da tela */
+            margin-bottom: 20px; 
+            opacity: 0; 
+            transition: opacity 3s ease-in-out;
+        }
+        .big-name {
+            font-size: 15vw; /* Responsivo */
+            font-weight: bold;
+            margin: 0;
+            font-family: Arial, sans-serif;
+            letter-spacing: 2px;
+            opacity: 0; 
+            transition: opacity 3s ease-in-out;
+        }
+        .subtitle { 
+            font-size: 5vw; 
+            color: #fff; 
+            margin-top: 20px; 
+            opacity: 0; 
+            transition: opacity 3s ease-in-out;
+        }
+
+        .boy-text { color: #00ffff; text-shadow: 0 0 20px #00ffff; }
+        .girl-text { color: #ff00ff; text-shadow: 0 0 20px #ff00ff; }
+
+        /* CONFETES */
+        #confetti-canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1000;
+        }
+
+        /* MEDIA QUERIES PARA DESKTOP (Ajustes finos se abrir no PC) */
+        @media (min-width: 768px) {
+            #terminal { font-size: 1.6rem; padding: 40px; }
+            .timer-label { font-size: 2rem; }
+            #timer-display { font-size: 10rem; }
+            .highlight { font-size: 1.8rem; }
+            .matrix-text { font-size: 1.2rem; }
+            .crash-title { font-size: 8rem; }
+            .prank-text { font-size: 2.5rem; }
+            .big-name { font-size: 10vw; }
+            .subtitle { font-size: 3rem; }
+            .launch-status { font-size: 3rem; }
+            .launch-count { font-size: 15rem; }
+        }
+
+    </style>
+</head>
+<body>
+
+    <input type="text" id="mobile-proxy" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
+
+    <div id="timer-screen">
+        <div class="timer-label">INICIANDO CONTAGEM</div>
+        <div id="timer-display">00:00</div>
+    </div>
+
+    <div id="terminal" onclick="focusProxy()">
+        <div id="output"></div>
+    </div>
+
+    <div id="launch-overlay">
+        <div class="launch-status" id="launch-text">PREPARING SYSTEMS...</div>
+        <div class="launch-count" id="launch-number"></div>
+    </div>
+
+    <div id="crash-screen">
+        <div class="crash-title">WARNING</div>
+        <div class="crash-msg">CRITICAL FAILURE</div>
+        <div style="color: #fff; margin-top: 10px; font-size: 1.2rem;">System shutdown in:</div>
+        <div class="crash-timer" id="crash-count">5</div>
+    </div>
+
+    <div id="prank-screen">
+        <div class="prank-text">( brincadeira, só pra não perder o costume... )</div>
+    </div>
+
+    <div id="reveal-screen">
+        <canvas id="confetti-canvas"></canvas>
+        <div class="moon-icon" id="moon-visual"></div>
+        <h1 class="big-name" id="baby-name"></h1>
+        <div class="subtitle" id="sub-visual">HELLO WORLD!</div>
+    </div>
+
+    <script>
+        // --- CONFIGURAÇÃO (EDITE AQUI) ---
+        const isBoy = true;          
+        let countdownSeconds = 10;   
+        const dadName = "Carlos";    
+        const momName = "Ana";       
+        // ----------------------------------
+
+        // Refs
+        const output = document.getElementById('output');
+        const terminal = document.getElementById('terminal');
+        const mobileProxy = document.getElementById('mobile-proxy'); // O input real
+        
+        // Telas
+        const timerScreen = document.getElementById('timer-screen');
+        const timerDisplay = document.getElementById('timer-display');
+        const launchOverlay = document.getElementById('launch-overlay');
+        const launchText = document.getElementById('launch-text');
+        const launchNumber = document.getElementById('launch-number');
+        const crashScreen = document.getElementById('crash-screen');
+        const crashCount = document.getElementById('crash-count');
+        const prankScreen = document.getElementById('prank-screen');
+        const revealScreen = document.getElementById('reveal-screen');
+        const babyNameElement = document.getElementById('baby-name');
+        const moonVisual = document.getElementById('moon-visual');
+        const subVisual = document.getElementById('sub-visual');
+
+        const sleep = (ms) => new Promise(r => setTimeout(r, ms));
+
+        // --- FUNÇÃO DE FOCO NO CELULAR ---
+        function focusProxy() {
+            mobileProxy.focus();
+        }
+
+        // --- TIMER ---
+        function startCountdown() {
+            const interval = setInterval(() => {
+                const min = Math.floor(countdownSeconds / 60).toString().padStart(2, '0');
+                const sec = (countdownSeconds % 60).toString().padStart(2, '0');
+                timerDisplay.innerText = `${min}:${sec}`;
+                if (countdownSeconds <= 0) {
+                    clearInterval(interval);
+                    timerScreen.style.display = 'none';
+                    terminal.style.display = 'block';
+                    initSystemPrompt();
+                }
+                countdownSeconds--;
+            }, 1000);
+        }
+
+        // --- SISTEMA DE INPUT MOBILE (NOVO) ---
+        let inputResolver = null; // Função que resolve a promessa quando der Enter
+
+        // Evento de digitação no input invisível
+        mobileProxy.addEventListener('input', () => {
+            const currentSpan = document.querySelector('.active-input');
+            if (currentSpan) {
+                currentSpan.innerText = mobileProxy.value;
+            }
+        });
+
+        // Evento de Enter
+        mobileProxy.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && inputResolver) {
+                const val = mobileProxy.value;
+                mobileProxy.value = ''; // Limpa para o próximo
+                inputResolver(val.trim());
+            }
+        });
+
+        function askInput(promptText) {
+            return new Promise((resolve) => {
+                // Remove classe ativa de inputs anteriores
+                document.querySelectorAll('.active-input').forEach(el => el.classList.remove('active-input'));
+
+                const line = document.createElement('div');
+                line.className = 'input-line';
+                line.innerHTML = `
+                    <span class="prompt-text">${promptText}</span>
+                    <div class="input-wrapper">
+                        <span class="user-input active-input"></span><span class="cursor"></span>
+                    </div>
+                `;
+                output.appendChild(line);
+                
+                // Rola e foca
+                window.scrollTo(0, document.body.scrollHeight);
+                terminal.scrollTop = terminal.scrollHeight;
+                
+                mobileProxy.value = ''; // Garante limpo
+                mobileProxy.focus();
+                
+                // Guarda a função resolve para chamar no keydown
+                inputResolver = (text) => {
+                    line.querySelector('.cursor').remove(); // Tira cursor
+                    resolve(text);
+                };
+            });
+        }
+
+        // --- UTILS ---
+        async function log(text, type = '') {
+            const div = document.createElement('div');
+            if (type === 'highlight') div.className = 'highlight';
+            else if (type === 'warning') div.className = 'warning';
+            else if (type === 'error') div.className = 'error';
+            else div.style.color = "#0f0"; 
+
+            div.textContent = text;
+            output.appendChild(div);
+            
+            // Scroll agressivo para garantir que a última linha apareça no celular
+            window.scrollTo(0, document.body.scrollHeight);
+            terminal.scrollTop = terminal.scrollHeight;
+            
+            await sleep(300); // Mais lento geral
+        }
+
+        async function matrixRain(lines) {
+            for(let i=0; i<lines; i++) {
+                let hex = Math.random().toString(16).substr(2, 8).toUpperCase();
+                const div = document.createElement('div');
+                div.className = 'matrix-text'; 
+                div.textContent = `Processing: 0x${hex}...`;
+                output.appendChild(div);
+                
+                window.scrollTo(0, document.body.scrollHeight);
+                terminal.scrollTop = terminal.scrollHeight;
+                
+                await sleep(60); // Matrix mais lento
+            }
+        }
+
+        // --- ROTEIRO (LÓGICA) ---
+        async function initSystemPrompt() {
+            await log("Terminal T-OS Mobile v9.0 Ready.");
+            await sleep(500);
+            focusProxy(); // Tenta chamar teclado
+
+            while (true) {
+                let resp = await askInput("Iniciar sistema? [S/N]:");
+                if (resp.toLowerCase() === 's') {
+                    runBootSequence();
+                    break;
+                } else {
+                    await log("Aguardando...", "warning");
+                }
+            }
+        }
+
+        async function runBootSequence() {
+            await sleep(500);
+            await log("Carregando Kernel...", "highlight");
+            await matrixRain(10);
+            await log("Conexão: OK");
+            
+            // PAI
+            await log(">>> AUTENTICAÇÃO <<<", "warning");
+            await sleep(1000);
+            
+            while(true) {
+                let inputPai = await askInput("Nome do Pai:");
+                await log(`Verificando: ${inputPai}...`);
+                await sleep(1500);
+                
+                if (inputPai.toLowerCase() === dadName.toLowerCase()) {
+                    await log("Acesso Admin 1: OK", "highlight");
+                    break;
+                } else {
+                    await log("ERRO: ACESSO NEGADO.", "error");
+                    await sleep(500);
+                }
+            }
+            
+            await sleep(500);
+            
+            // MÃE
+            while(true) {
+                let inputMae = await askInput("Nome da Mãe:");
+                await log(`Verificando: ${inputMae}...`);
+                await sleep(1500);
+                
+                if (inputMae.toLowerCase() === momName.toLowerCase()) {
+                    await log("Acesso Admin 2: OK", "highlight");
+                    break;
+                } else {
+                    await log("ERRO: ACESSO NEGADO.", "error");
+                    await sleep(500);
+                }
+            }
+
+            await sleep(1000);
+            await log("ACESSO TOTAL LIBERADO.", "highlight");
+            await log("--------------------");
+
+            // MENSAGENS
+            const funnyMessages = [
+                "Acessando dados...",
+                "Baixando: 'Manual_Bebe.pdf'...",
+                "Calibrando bochechas...",
+                "Sincronizando com a Lua...",
+                "Otimizando fofura...",
+                "Verificando avós...",
+                "Compilando DNA..."
+            ];
+
+            for (let msg of funnyMessages) {
+                await log(`> ${msg}`, "highlight"); 
+                await matrixRain(5);
+                await sleep(2500); // Lento para lerem
+            }
+
+            await log("SISTEMA PRONTO.", "highlight");
+            await sleep(1000);
+
+            promptFinalReveal();
+        }
+
+        async function promptFinalReveal() {
+            await log("--------------------");
+            await log("REVELACAO.EXE PRONTO.", "warning");
+            
+            while(true) {
+                let resp = await askInput("Executar? [S/N]:");
+                if (resp.toLowerCase() === 's') {
+                    startLaunchSequence();
+                    break;
+                } else {
+                    await log("Opção inválida.", "error");
+                }
+            }
+        }
+
+        async function startLaunchSequence() {
+            mobileProxy.blur(); // Esconde teclado
+            terminal.style.display = 'none';
+            launchOverlay.style.display = 'flex';
+
+            const msgs = ["MOTORES...", "PRESSURIZANDO...", "NAVEGAÇÃO: OK", "DESTINO: TERRA"];
+            for(let m of msgs) {
+                launchText.innerText = m;
+                await sleep(1500);
+            }
+
+            launchText.innerText = "LANÇAMENTO:";
+            for(let i=5; i>0; i--) {
+                launchNumber.innerText = i;
+                await sleep(1000);
+            }
+            
+            triggerFakeCrash(); 
+        }
+
+        async function triggerFakeCrash() {
+            launchOverlay.style.display = 'none';
+            crashScreen.style.display = 'flex';
+            
+            for(let i=5; i>=0; i--) {
+                crashCount.innerText = i;
+                await sleep(1000);
+            }
+
+            crashScreen.style.display = 'none';
+            prankScreen.style.display = 'flex';
+            await sleep(4500); 
+            
+            prankScreen.style.display = 'none';
+            triggerCinematicReveal();
+        }
+
+        function triggerCinematicReveal() {
+            revealScreen.style.display = 'flex';
+            
+            if (isBoy) {
+                babyNameElement.classList.add('boy-text');
+                babyNameElement.innerText = "APOLO";
+                moonVisual.innerText = "🌑"; 
+                moonVisual.style.textShadow = "0 0 30px #00ffff";
+            } else {
+                babyNameElement.classList.add('girl-text');
+                babyNameElement.innerText = "SELENE";
+                moonVisual.innerText = "🌕";
+                moonVisual.style.textShadow = "0 0 30px #ff00ff";
+            }
+
+            setTimeout(() => { moonVisual.style.opacity = 1; }, 500);
+            setTimeout(() => { 
+                babyNameElement.style.opacity = 1; 
+                subVisual.style.opacity = 1;
+                startConfetti(); 
+            }, 2500);
+        }
+
+        function startConfetti() {
+            const canvas = document.getElementById('confetti-canvas');
+            const ctx = canvas.getContext('2d');
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+
+            const particles = [];
+            const particleCount = 100; // Menos partículas no mobile para não travar
+            const colors = isBoy ? ['#00ffff', '#0000ff', '#ffffff'] : ['#ff00ff', '#800080', '#ffffff'];
+
+            for (let i = 0; i < particleCount; i++) {
+                particles.push({
+                    x: Math.random() * canvas.width,
+                    y: Math.random() * canvas.height - canvas.height,
+                    size: Math.random() * 5 + 3,
+                    speedY: Math.random() * 3 + 2,
+                    speedX: Math.random() * 2 - 1,
+                    color: colors[Math.floor(Math.random() * colors.length)]
+                });
+            }
+
+            function animate() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                particles.forEach(p => {
+                    p.y += p.speedY;
+                    p.x += p.speedX;
+                    ctx.fillStyle = p.color;
+                    ctx.fillRect(p.x, p.y, p.size, p.size);
+                    if (p.y > canvas.height) {
+                        p.y = -10;
+                        p.x = Math.random() * canvas.width;
+                    }
+                });
+                requestAnimationFrame(animate);
+            }
+            animate();
+        }
+
+        // Força tela cheia se possível ao clicar (Android)
+        document.body.addEventListener('click', () => {
+             if (document.documentElement.requestFullscreen) {
+                // document.documentElement.requestFullscreen().catch(() => {});
+             }
+        });
+
+        window.onload = startCountdown;
+    </script>
+</body>
+</html>
+
