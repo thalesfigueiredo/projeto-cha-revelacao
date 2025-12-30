@@ -1,35 +1,35 @@
 // =========================================
-// CONFIGURAÇÃO
+// 1. CONFIGURAÇÃO GERAL
 // =========================================
-const isBoy = true; // TRUE = Apolo, FALSE = Selene
+const isBoy = true;          // TRUE = Apolo, FALSE = Selene
 const dadName = "Flatelo";   
 const momName = "Marcela";   
 // const avos = "João, Maria, José e Ana"; 
 let countdownSeconds = 10;   
 
-// ELEMENTOS
+// =========================================
+// 2. ELEMENTOS DO DOM (Centralizados)
+// =========================================
+// Áudios
 const audioTension = document.getElementById('audio-tension');
 const audioCeleb = document.getElementById('audio-celebration');
 
-// Cenas
-const laptopStage = document.getElementById('laptop-stage');
-const terminalApp = document.getElementById('terminal-app');
-const introStage = document.getElementById('intro-stage');
-
-// Elementos Intro
+// Intro
+const stage = document.getElementById('intro-stage');
 const couple = document.getElementById('couple-container');
 const rocket = document.getElementById('rocket-container');
 const ground = document.getElementById('ground');
 const skyObj = document.getElementById('sky-object');
+const laptopUI = document.getElementById('laptop-ui');
 
-// Terminal
+// Terminal & Logic
 const output = document.getElementById('output');
 const terminal = document.getElementById('terminal');
 const timerScreen = document.getElementById('timer-screen');
 const timerDisplay = document.getElementById('timer-display');
 const mobileProxy = document.getElementById('mobile-proxy');
 
-// Overlays
+// Telas Finais
 const launchOverlay = document.getElementById('launch-overlay');
 const launchText = document.getElementById('launch-text');
 const launchNumber = document.getElementById('launch-number');
@@ -42,61 +42,62 @@ const babyNameElement = document.getElementById('baby-name');
 const moonVisual = document.getElementById('moon-visual');
 const subVisual = document.getElementById('sub-visual');
 
-// Utils
+// =========================================
+// 3. FUNÇÕES AUXILIARES
+// =========================================
 const sleep = (ms) => new Promise(r => setTimeout(r, ms));
 
-// 1. INÍCIO: MOSTRA LAPTOP
 function startExperience() {
     document.getElementById('start-overlay').style.display = 'none';
+    document.getElementById('intro-stage').style.display = 'block';
     // document.getElementById('grandparents-names').innerText = avos; 
     
-    // Começa música ambiente
+    // Inicia Interestelar (Toca até o final da brincadeira)
     audioTension.volume = 0.8;
     audioTension.play();
-
-    // Mostra o Laptop
-    laptopStage.style.display = 'flex';
+    runIntroAnimation();
 }
 
-// UI do Laptop
-window.openFolder = function() {
-    document.getElementById('folder-view').style.display = "none";
-    document.getElementById('file-view').style.display = "block";
-}
-
-// 2. MODO HACKER: ESCONDE LAPTOP, MOSTRA TERMINAL
-window.startHackerMode = function() {
-    laptopStage.style.display = 'none'; // Some laptop
-    terminalApp.style.display = 'block'; // Aparece container do terminal
-    timerScreen.style.display = 'flex'; // Começa com o Timer
-    startCountdown();
-}
-
-// Lógica de Input (Terminal)
+// =========================================
+// 4. LÓGICA DE INPUT (Desktop & Mobile)
+// =========================================
 terminal.onclick = () => mobileProxy.focus();
+
 mobileProxy.addEventListener('input', () => {
     const activeSpan = document.querySelector('.active-input');
     if(activeSpan) activeSpan.innerText = mobileProxy.value;
 });
+
 let resolver = null;
 mobileProxy.addEventListener('keydown', (e) => {
     if(e.key === 'Enter' && resolver) {
         e.preventDefault();
-        const val = mobileProxy.value; mobileProxy.value = ''; resolver(val.trim());
+        const val = mobileProxy.value; 
+        mobileProxy.value = ''; 
+        resolver(val.trim());
     }
 });
 
 function askInput(promptText) {
     return new Promise((resolve) => {
         document.querySelectorAll('.active-input').forEach(e => e.classList.remove('active-input'));
+        
         const line = document.createElement('div');
         line.className = 'input-line';
-        line.innerHTML = `<span class="prompt-text">${promptText}</span><div class="input-wrapper"><span class="user-input active-input"></span><span class="cursor"></span></div>`;
+        line.innerHTML = `
+            <span class="prompt-text">${promptText}</span>
+            <div class="input-wrapper">
+                <span class="user-input active-input"></span><span class="cursor"></span>
+            </div>`;
         output.appendChild(line);
         window.scrollTo(0, document.body.scrollHeight);
         terminal.scrollTop = terminal.scrollHeight;
+        
         mobileProxy.focus();
-        resolver = (res) => { line.querySelector('.cursor').remove(); resolve(res); }
+        resolver = (res) => { 
+            line.querySelector('.cursor').remove(); 
+            resolve(res); 
+        }
     });
 }
 
@@ -124,6 +125,122 @@ async function matrixRain(lines) {
     }
 }
 
+// =========================================
+// 5. ANIMAÇÃO INTRODUÇÃO
+// =========================================
+function generateStars() {
+    for(let i=0; i<100; i++) {
+        const s = document.createElement('div');
+        s.className = 'star';
+        s.style.left = Math.random() * 100 + '%';
+        s.style.top = Math.random() * 100 + '%';
+        const size = Math.random() * 3;
+        s.style.width = size + 'px'; s.style.height = size + 'px';
+        stage.appendChild(s);
+    }
+}
+
+async function runIntroAnimation() {
+    generateStars();
+    
+    // 1. Casal entra (na Lua)
+    await sleep(500);
+    couple.style.left = "40%"; 
+    await sleep(6000); 
+
+    // 2. Entram no foguete
+    couple.style.opacity = "0"; 
+    await sleep(1000);
+
+    // 3. DECOLAGEM (IDA: Rumo à Terra)
+    rocket.classList.add('rocket-shake'); 
+    await sleep(1500); 
+    
+    // A mágica da perspectiva:
+    // Vai para cima (bottom 85%) e para a direita (left 85%) onde está a Terra
+    // Gira 45 graus para apontar pra lá
+    // DIMINUI (scale 0.1) para parecer que está indo para longe/entrando na Terra
+    rocket.style.bottom = "85%"; 
+    rocket.style.left = "85%"; 
+    rocket.style.transform = "translateX(-50%) rotate(45deg) scale(0.1)";
+    
+    // 4. Espaço (Transição de Cenário)
+    await sleep(4000); // Espera a nave chegar lá longe
+    
+    // Troca o cenário para Dia/Terra
+    stage.style.background = "#87CEEB"; 
+    ground.style.transition = "background 2s, bottom 1s";
+    ground.style.bottom = "-20vh"; 
+    setTimeout(() => { ground.style.background = "#228B22"; }, 500);
+    document.querySelectorAll('.star').forEach(s => s.style.opacity = 0);
+    
+    // Transforma a Terra (que a nave entrou) na Lua (de onde a nave vai sair)
+    skyObj.style.opacity = 0; 
+    await sleep(500);
+    skyObj.innerText = "🌑"; 
+    skyObj.style.fontSize = "15vw"; 
+    skyObj.style.color = "#fff"; 
+    skyObj.style.opacity = 0.6;
+    
+    await sleep(1000); 
+
+    // 5. A VOLTA (Saindo da Lua -> Pousando na Terra)
+    
+    // Reposiciona a nave "teletransportando" ela para dentro da Lua (sem animação)
+    rocket.style.transition = "none"; 
+    rocket.style.bottom = "85%"; // Lá no alto
+    rocket.style.left = "85%";   // Lá na direita (Lua)
+    // Aponta para baixo/esquerda e começa PEQUENA
+    rocket.style.transform = "translateX(-50%) rotate(-45deg) scale(0.1)"; 
+    
+    // Traz o chão
+    ground.style.bottom = "0";
+    
+    // Pequena pausa técnica para o navegador entender a nova posição
+    await sleep(100);
+
+    // ATIVA A DESCIDA
+    // Volta a transição lenta
+    rocket.style.transition = "bottom 5s ease-out, left 5s ease-out, transform 5s ease-out"; 
+    
+    // Destino final: Centro, Chão, Tamanho Normal
+    rocket.style.bottom = "13vh"; 
+    rocket.style.left = "50%";
+    rocket.style.transform = "translateX(-50%) rotate(0deg) scale(1)"; // Volta ao tamanho original
+
+    // Para de tremer quando pousar
+    setTimeout(() => rocket.classList.remove('rocket-shake'), 5000);
+
+    await sleep(5500);
+
+    // 6. Casal Sai
+    couple.style.opacity = "1";
+    couple.style.transition = "left 2s ease-out";
+    couple.style.left = "20%"; 
+    await sleep(2500);
+    
+    // 7. Abre Notebook
+    laptopUI.style.display = "flex";
+}
+
+window.openFolder = function() {
+    document.getElementById('folder-view').style.display = "none";
+    document.getElementById('file-view').style.display = "block";
+}
+
+window.startHackerMode = function() {
+    stage.style.transition = "opacity 1s";
+    stage.style.opacity = 0;
+    setTimeout(() => {
+        stage.style.display = "none";
+        document.getElementById('terminal-app').style.display = "block";
+        startCountdown();
+    }, 1000);
+}
+
+// =========================================
+// 6. TERMINAL LOGIC
+// =========================================
 function startCountdown() {
     const int = setInterval(() => {
         const min = Math.floor(countdownSeconds/60).toString().padStart(2,'0');
@@ -140,7 +257,7 @@ function startCountdown() {
 }
 
 async function initSystemPrompt() {
-    await log("Terminal T-OS v15.0 Connected.");
+    await log("Terminal T-OS v13.0 Security Enhanced.");
     await sleep(500);
     while (true) {
         let resp = await askInput("Iniciar sistema? [S/N]:");
@@ -153,29 +270,37 @@ async function runBootSequence() {
     await sleep(500);
     await log("Carregando Kernel...", "highlight");
     await matrixRain(15);
+    await log("Verificando conexão estelar... OK");
     
     await log(">>> AUTENTICAÇÃO NECESSÁRIA <<<", "warning");
     await sleep(800);
     while(true) {
         let r = await askInput("Nome do Pai (Admin 1):");
-        await log(`Verificando: ${r}...`); await sleep(1000);
+        await log(`Verificando credenciais: ${r}...`); await sleep(1500);
         if (r.toLowerCase() === dadName.toLowerCase()) { await log("Acesso Admin 1: AUTORIZADO.", "highlight"); break; }
-        else { await log("ERRO: ACESSO NEGADO.", "error"); }
+        else { await log("ERRO: ACESSO NEGADO.", "error"); await sleep(500); }
     }
+    await sleep(500);
     while(true) {
         let r = await askInput("Nome da Mãe (Admin 2):");
-        await log(`Verificando: ${r}...`); await sleep(1000);
+        await log(`Verificando credenciais: ${r}...`); await sleep(1500);
         if (r.toLowerCase() === momName.toLowerCase()) { await log("Acesso Admin 2: AUTORIZADO.", "highlight"); break; }
-        else { await log("ERRO: ACESSO NEGADO.", "error"); }
+        else { await log("ERRO: ACESSO NEGADO.", "error"); await sleep(500); }
     }
 
+    await sleep(800);
     await log("PERMISSÃO TOTAL CONCEDIDA.", "highlight");
-    const msgs = ["Acessando dados da família...", "Baixando: 'Manual_de_Instrucoes_Bebe.pdf'...",
-                    "Calibrando bochechas...", "Baixando dados...", "Sincronizando...", 
-                    "Otimizando fofura...", "Compilando DNA..."];
-    for (let msg of msgs) { await log(`> ${msg}`, "highlight"); await matrixRain(8); await sleep(2000); }
+    await log("---------------------------------");
+
+    const msgs = [
+        "Acessando dados da família...", "Baixando: 'Manual_de_Instrucoes_Bebe.pdf'...",
+        "Calibrando bochechas...", "Sincronizando com a Lua...",
+        "Otimizando fofura...", "Verificando palpites dos avós...", "Compilando DNA..."
+    ];
+    for (let msg of msgs) { await log(`> ${msg}`, "highlight"); await matrixRain(8); await sleep(3000); }
 
     await log("SISTEMA PRONTO.", "highlight");
+    await sleep(1000);
     promptFinalReveal();
 }
 
@@ -185,18 +310,17 @@ async function promptFinalReveal() {
     while(true) {
         let resp = await askInput("Executar AGORA? [S/N]:");
         if (resp.toLowerCase() === 's') { startLaunchSequence(); break; }
-        else { await log("Opção inválida.", "error"); }
+        else { await log("Opção inválida. Tente novamente.", "error"); }
     }
 }
 
 async function startLaunchSequence() {
     terminal.style.display = 'none';
     launchOverlay.style.display = 'flex';
-    const msgs = ["MOTORES: ON", "PRESSURIZAÇÃO: OK", "DESTINO: TERRA"];
+    const msgs = ["INICIANDO MOTORES...", "PRESSURIZANDO CABINE...", "NAVEGAÇÃO: OK", "DESTINO: TERRA"];
     for(let m of msgs) { launchText.innerText = m; await sleep(1200); }
     launchText.innerText = "LANÇAMENTO EM:";
     for(let i=5; i>0; i--) { launchNumber.innerText = i; await sleep(1000); }
-    
     triggerFakeCrash(); 
 }
 
@@ -204,110 +328,28 @@ async function triggerFakeCrash() {
     launchOverlay.style.display = 'none';
     crashScreen.style.display = 'flex';
     
-    // Contagem do Erro
+    // Interestelar ainda toca...
     for(let i=5; i>=0; i--) { crashCount.innerText = i; await sleep(1000); }
     
     crashScreen.style.display = 'none';
     prankScreen.style.display = 'flex';
-    await sleep(3000); // Tempo da piada
+    await sleep(3000); 
     
-    // 3. FIM DO TERMINAL -> VAI PARA FOGUETE
+    // FIM Interestelar -> INÍCIO Van Halen + Star Wars
     prankScreen.style.display = 'none';
-    terminalApp.style.display = 'none'; // Some terminal inteiro
-    initRocketSequence();
-}
-
-// 3. CENA DO FOGUETE
-function generateStars() {
-    for(let i=0; i<100; i++) {
-        const s = document.createElement('div');
-        s.className = 'star';
-        s.style.left = Math.random() * 100 + '%';
-        s.style.top = Math.random() * 100 + '%';
-        const size = Math.random() * 3;
-        s.style.width = size + 'px'; s.style.height = size + 'px';
-        introStage.appendChild(s);
-    }
-}
-
-async function initRocketSequence() {
-    introStage.style.display = 'block';
-    generateStars();
-    
-    // 1. Casal entra (na Lua)
-    await sleep(500);
-    couple.style.left = "40%"; 
-    await sleep(6000); 
-
-    // 2. Entram no foguete
-    couple.style.opacity = "0"; 
-    await sleep(1000);
-
-    // 3. DECOLAGEM (Perspectiva)
-    rocket.classList.add('rocket-shake'); 
-    await sleep(1500); 
-    
-    // Vai p/ longe e p/ direita
-    rocket.style.bottom = "85%"; 
-    rocket.style.left = "85%"; 
-    rocket.style.transform = "translateX(-50%) rotate(45deg) scale(0.1)";
-    
-    // 4. Mudança de Cenário
-    await sleep(4000); 
-    introStage.style.background = "#87CEEB"; 
-    ground.style.transition = "background 2s, bottom 1s";
-    ground.style.bottom = "-20vh"; 
-    setTimeout(() => { ground.style.background = "#228B22"; }, 500);
-    document.querySelectorAll('.star').forEach(s => s.style.opacity = 0);
-    
-    // Vira Lua
-    skyObj.style.opacity = 0; 
-    await sleep(500);
-    skyObj.innerText = "🌑"; 
-    skyObj.style.fontSize = "15vw"; 
-    skyObj.style.color = "#fff"; 
-    skyObj.style.opacity = 0.6;
-    
-    await sleep(1000); 
-
-    // 5. VOLTA (Pouso)
-    rocket.style.transition = "none"; 
-    rocket.style.bottom = "85%"; 
-    rocket.style.left = "85%";   
-    rocket.style.transform = "translateX(-50%) rotate(-45deg) scale(0.1)"; 
-    
-    ground.style.bottom = "0";
-    await sleep(100);
-
-    rocket.style.transition = "bottom 5s ease-out, left 5s ease-out, transform 5s ease-out"; 
-    rocket.style.bottom = "13vh"; 
-    rocket.style.left = "50%";
-    rocket.style.transform = "translateX(-50%) rotate(0deg) scale(1)";
-
-    setTimeout(() => rocket.classList.remove('rocket-shake'), 5000);
-    await sleep(5500);
-
-    // 6. Casal Sai
-    couple.style.opacity = "1";
-    couple.style.transition = "left 2s ease-out";
-    couple.style.left = "20%"; 
-    await sleep(2500);
-
-    // FIM DO FOGUETE -> VAI PARA STAR WARS
     startStarWars();
 }
 
-// 4. STAR WARS & REVEAL
+// =========================================
+// 7. STAR WARS & REVEAL
+// =========================================
 async function startStarWars() {
-    // Troca Música
     audioTension.pause();
     audioCeleb.volume = 1.0;
     audioCeleb.play();
 
-    introStage.style.display = 'none'; // Some cena do foguete
     starWarsScreen.style.display = 'block';
-    
-    await sleep(26000); 
+    await sleep(22000); // Tempo leitura
     
     starWarsScreen.style.display = 'none';
     triggerSlotMachine();
@@ -334,7 +376,7 @@ function triggerSlotMachine() {
 }
 
 function finishReveal() {
-    babyNameElement.style.color = ''; babyNameElement.style.textShadow = '';
+    babyNameElement.style.color = ''; babyNameElement.style.textShadow = ''; // Reset inline
     if(isBoy) {
         babyNameElement.innerText = "APOLO";
         babyNameElement.className = "big-name boy-text";
@@ -374,8 +416,3 @@ function startConfetti() {
     }
     loop();
 }
-
-// Fullscreen Mobile
-document.body.addEventListener('click', () => {
-        if (document.documentElement.requestFullscreen) { /* document.documentElement.requestFullscreen().catch(() => {}); */ }
-});

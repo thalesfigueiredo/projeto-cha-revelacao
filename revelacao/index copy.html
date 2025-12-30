@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Protocolo Revelação</title>
+
+    <link rel="stylesheet" href="css/styles.css">
+
+</head>
+<body>
+
+    <audio id="audio-tension" src="assets/audio/interstellar.mp3" loop></audio>
+    <audio id="audio-celebration" src="assets/audio/vanhalen.mp3"></audio>
+
+    <div id="start-overlay" onclick="startExperience()">
+        <button class="start-btn">INICIAR SISTEMA</button>
+    </div>
+
+    <div id="intro-stage">
+        <div id="sky-object">🌍</div> 
+        <div id="rocket-container">🚀</div>
+        <div id="couple-container">
+            <div style="transform: scaleX(-1);">👦</div> 
+            <div style="transform: scaleX(-1);">👧</div> 
+        </div>
+        <div class="ground" id="ground"></div>
+
+        <div id="laptop-ui">
+            <div style="width:100%; background:#ccc; height:25px; border-bottom:1px solid #999; display:flex; justify-content:flex-end; padding-right:8px; align-items:center;">
+                <div style="width:12px; height:12px; background:red; border-radius:50%;"></div>
+            </div>
+            <div id="folder-view" style="text-align:center; padding:20px;">
+                <div class="folder-icon" onclick="openFolder()">📁</div>
+                <div class="ui-text">Projeto_Vida</div>
+            </div>
+            <div id="file-view" style="text-align:center; display:none; padding:20px;">
+                <div class="file-icon" style="display:block;" onclick="startHackerMode()">📄</div>
+                <div class="ui-text">revelacao_final.exe</div>
+            </div>
+        </div>
+    </div>
+
+    <div id="terminal-app">
+        <div id="timer-screen"><div class="timer-label">INICIANDO CONTAGEM</div><div id="timer-display">00:00</div></div>
+        <div id="terminal"><div id="output"></div></div>
+        
+        <div id="launch-overlay"><div class="launch-status" id="launch-text">PREPARING SYSTEMS...</div><div class="launch-count" id="launch-number"></div></div>
+        <div id="crash-screen">
+            <div class="crash-title">WARNING</div>
+            <div class="crash-msg">CRITICAL FAILURE DETECTED</div>
+            <div style="color: #fff; margin-top: 10px;">System shutdown in:</div>
+            <div class="crash-timer" id="crash-count">5</div>
+        </div>
+        <div id="prank-screen"><div class="prank-text">( brincadeira, só pra não perder o costume... )</div></div>
+
+        <div id="starwars-screen">
+            <div class="crawl-container" id="crawl-content">
+                <div class="crawl-title">A JORNADA</div>
+                <div class="crawl-text">
+                    Há muito tempo, em uma galáxia não muito distante...<br><br>
+                    Duas almas se encontraram e decidiram criar um novo universo.<br><br>
+                    <!-- Os avós <span id="grandparents-names" style="color:#0ff"></span> estão ansiosos.<br><br> -->
+                    Os avós estão ansiosos.<br><br>
+                    A Força está ficando mais forte… bebê a caminho.<br><br>
+                    E agora, o momento que todos esperavam chegou.
+                </div>
+                <div class="crawl-final">E O NOME SERÁ...</div>
+            </div>
+        </div>
+
+        <div id="reveal-screen">
+            <canvas id="confetti-canvas"></canvas>
+            <div class="moon-icon" id="moon-visual"></div>
+            <h1 class="big-name" id="baby-name">APOLO</h1> 
+            <div class="subtitle" id="sub-visual">HELLO WORLD!</div>
+        </div>
+    </div>
+
+    <input type="text" id="mobile-proxy">
+
+    <script src="js/script.js"></script>
+</body>
+</html>
